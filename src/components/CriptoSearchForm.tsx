@@ -1,15 +1,19 @@
 import { useCryptoStore } from "../store"
 import { currencies } from "../data"
-import { useState } from "react"
+import { FormEvent, useState } from "react"
 import { Pair } from "../types"
 import { ChangeEvent } from "react"
+import ErrorMessage from "./ErrorMessage"
 
 const CriptoSearchForm = () => {
     const cryptocurrencies = useCryptoStore((state) => state.cryptocurrencies)
+    const fetchData = useCryptoStore((state)=>state.fetchData)
     const [pair, setPair] = useState<Pair>({
         currency: '',
         criptocurrency: ''
     })
+
+    const [error, setError] = useState('')
 
     const handleChange = (e: ChangeEvent<HTMLSelectElement>)=>{
         setPair({
@@ -18,17 +22,30 @@ const CriptoSearchForm = () => {
         })
     }
 
+    const handleSubmit = (e: FormEvent<HTMLFormElement>) =>{
+        e.preventDefault()
+        if(Object.values(pair).includes('')){
+            setError('Todos los campos son obligatorios')
+            return
+        }
+        setError('')
+        fetchData(pair)
+    }
+
     return (
         <form
             action=""
             className="form"
+            onSubmit={handleSubmit}
         >
+            {error && <ErrorMessage>{error}</ErrorMessage>}
             <div className="field">
                 <label htmlFor="currency">Moneda:</label>
                 <select
                     name="currency"
                     id="currency"
                     onChange={handleChange}
+                    value={pair.currency}
                 >
                     <option value="">--Seleccione--</option>
                     {currencies.map(currency => 
@@ -43,11 +60,12 @@ const CriptoSearchForm = () => {
                     name="criptocurrency"
                     id="criptocurrency"
                     onChange={handleChange}
+                    value={pair.criptocurrency}
                 >
                     <option value="">--Seleccione--</option>
                     {cryptocurrencies.map(crypto => (
                         <option 
-                            value={crypto.CoinInfo.FullName}
+                            value={crypto.CoinInfo.Name}
                             key={crypto.CoinInfo.Name}
                         >{crypto.CoinInfo.FullName}</option>
                     ))}
